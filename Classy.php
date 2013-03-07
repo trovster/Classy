@@ -198,9 +198,10 @@ class Classy {
 	 * find_by_slug
 	 * @desc	Find a post by 'slug'.
 	 * @param	string	$slug
+	 * @param	string	$post_type
 	 * @return	mixed 
 	 */
-	public static function find_by_slug($slug) {
+	public static function find_by_slug($slug, $post_type) {
 		$post = get_page_by_path($slug, OBJECT, $post_type);
 		
 		if(is_object($post)) {
