@@ -12,7 +12,7 @@ class Classy_Post extends Classy {
 	/**
 	 * __construct
 	 * @desc	
-	 * @param	mixed	$options
+	 * @param	array	$options
 	 * @return	Classy_Post
 	 */
 	public function __construct($options = array()) {
