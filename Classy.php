@@ -162,6 +162,57 @@ class Classy {
 	}
 	
 	/*********************************************************
+	 * =Finding Methods
+	 * @desc	Turn the basic data in to Classy objects
+	 *********************************************************/
+	
+	/**
+	 * forge
+	 * @desc	Create an new instance of the Classy class.
+	 * @param	array	$data
+	 * @return	instance 
+	 */
+	public static function forge($data) {
+		return new static($data);
+	}
+	
+	/**
+	 * find_by_id
+	 * @desc	Find a post by id.
+	 * @param	int		$id
+	 * @return	mixed 
+	 */
+	public static function find_by_id($id) {
+		$post = get_post($id);
+		
+		if(is_object($post)) {
+			return self::forge(array(
+				'post'	=> $post
+			));
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * find_by_slug
+	 * @desc	Find a post by 'slug'.
+	 * @param	string	$slug
+	 * @return	mixed 
+	 */
+	public static function find_by_slug($slug) {
+		$post = get_page_by_path($slug, OBJECT, $post_type);
+		
+		if(is_object($post)) {
+			return self::forge(array(
+				'post'	=> $post
+			));
+		}
+		
+		return false;
+	}
+	
+	/*********************************************************
 	 * =WordPress Methods
 	 * @desc	General WordPress methods
 	 *********************************************************/
