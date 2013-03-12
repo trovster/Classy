@@ -21,11 +21,19 @@ class Classy {
 	/**
 	 * __construct
 	 * @desc	
-	 * @param	array	$options
+	 * @param	mixed	$options
 	 * @return	\Classy
 	 */
 	public function __construct($options = array()) {
-		if(is_array($options)) {
+		if($options === 'initialize') {
+			add_action('init',			array(&$this, 'register_post_type'));
+			add_action('init',			array(&$this, 'register_taxonomies'));
+			add_action('init',			array(&$this, 'register_images'));
+
+			add_filter(sprintf('manage_edit-%s_columns', $this->get_post_type()), array(&$this, 'manage_edit_columns'));
+			add_filter(sprintf('manage_edit-%s_sortable_columns', $this->get_post_type()), array(&$this, 'manage_sortable_columns'));
+		}
+		elseif(is_array($options)) {
 			foreach($options as $key => $value) {
 				$this->$key = $value;
 			}
@@ -225,7 +233,7 @@ class Classy {
 	 * @return	int
 	 */
 	public function get_the_ID() {
-		return $this->post->ID;
+		return !empty($this->post) ? $this->post->ID : 0;
 	}
 	
 	/**
@@ -235,6 +243,53 @@ class Classy {
 	 */
 	public function the_ID() {
 		echo $this->get_the_ID();
+	}
+	
+	/**
+	 * has_thumbnail
+	 * @origin	has_post_thumbnail()
+	 * @desc	Checks whether the post has a thumbnail.
+	 * @return	boolean 
+	 */
+	public function has_thumbnail() {
+		return (bool) get_post_meta($this->get_the_ID(), '_thumbnail_id', true);
+	}
+	
+	/**
+	 * get_thumbnail_id
+	 * @origin	get_post_thumbnail_id()
+	 * @desc	Retrieve the post thumbnail ID
+	 * @return	boolean 
+	 */
+	public function get_thumbnail_id() {
+		return get_post_meta($this->get_the_ID(), '_thumbnail_id', true);
+	}
+	
+	/**
+	 * get_thumbnail
+	 * @origin	get_the_post_thumbnail()
+	 * @desc	Retrieve the post thumbnail HTML.
+	 * @param	string			$size
+	 * @param	string|array	$attr
+	 * @return	string 
+	 */
+	public function get_thumbnail($size = 'post-thumbnail', $attr = '') {
+		if($this->has_thumbnail()) {
+			$size = apply_filters('post_thumbnail_size', $size);
+			
+			do_action('begin_fetch_post_thumbnail_html', $this->get_the_ID(), $this->get_thumbnail_id(), $size);
+
+			if(in_the_loop()) {
+				update_post_thumbnail_cache();
+			}
+
+			$html = wp_get_attachment_image($this->get_thumbnail_id(), $size, false, $attr);
+			
+			do_action('end_fetch_post_thumbnail_html', $this->get_the_ID(), $this->get_thumbnail_id(), $size);
+			
+			return apply_filters('post_thumbnail_html', $html, $this->get_the_ID(), $this->get_thumbnail_id(), $size, $attr);
+		}
+		return '';
 	}
 	
 }
