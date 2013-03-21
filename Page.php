@@ -13,7 +13,7 @@ class Classy_Page extends Classy {
 	 * __construct
 	 * @desc	
 	 * @param	array	$options
-	 * @return	Classy_Post
+	 * @return	\Classy_Page
 	 */
 	public function __construct($options = array()) {
 		parent::__construct($options);
