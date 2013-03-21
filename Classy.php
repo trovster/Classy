@@ -5,9 +5,10 @@
  * @desc	
  */
 
-class Classy {
+abstract class Classy {
 	
 	protected $_post_type,
+			  $_post		= null,
 			  $_custom		= null;
 	
 	protected static $_allowed_keys_orderby = array(
@@ -26,12 +27,12 @@ class Classy {
 	 */
 	public function __construct($options = array()) {
 		if($options === 'initialize') {
-			add_action('init',			array(&$this, 'register_post_type'));
-			add_action('init',			array(&$this, 'register_taxonomies'));
-			add_action('init',			array(&$this, 'register_images'));
+			add_action('init',			array(&$this, 'init_register_post_type'));
+			add_action('init',			array(&$this, 'init_register_taxonomies'));
+			add_action('init',			array(&$this, 'init_register_images'));
 
-			add_filter(sprintf('manage_edit-%s_columns', $this->get_post_type()), array(&$this, 'manage_edit_columns'));
-			add_filter(sprintf('manage_edit-%s_sortable_columns', $this->get_post_type()), array(&$this, 'manage_sortable_columns'));
+			add_filter(sprintf('manage_edit-%s_columns', $this->get_post_type()), array(&$this, 'filter_manage_column_listing'));
+			add_action(sprintf('manage_%s_posts_custom_column', $this->get_post_type()), array(&$this, 'action_manage_column_value'), 10, 2);
 		}
 		elseif(is_array($options)) {
 			foreach($options as $key => $value) {
@@ -77,6 +78,9 @@ class Classy {
 		elseif(isset($this->{$key})) {
 			return $this->{$key};
 		}
+		elseif($this->has_custom_value($key)) {
+			return $this->get_custom_value($key);
+		}
 		elseif(isset($this->_post->{$key})) {
 			return $this->_post->{$key};
 		}
@@ -95,6 +99,9 @@ class Classy {
 		}
 		elseif(isset($this->{$key})) {
 			$value = $this->{$key};
+		}
+		elseif($this->has_custom_value($key)) {
+			$value = $this->get_custom_value($key);
 		}
 		elseif(isset($this->_post->{$key})) {
 			$value = $this->_post->{$key};
@@ -148,6 +155,14 @@ class Classy {
 	}
 	
 	
+	/*********************************************************
+	 * =Custom Fields
+	 * @desc	Checking whether custom values exist
+	 *			and getting them. Includes methods for
+	 *			special content types;
+	 *			json, boolean, and serialized.
+	 *********************************************************/
+	
 	/**
 	 * set_custom
 	 * @desc	Retrieves and sets up all of the custom data.
@@ -169,9 +184,89 @@ class Classy {
 		return $this->_custom;
 	}
 	
+	/**
+	 * has_custom_value
+	 * @desc	Check whether a custom value exists.
+	 * @param	string	$key
+	 * @param	string	$prefix
+	 * @return	boolean
+	 */
+	public function has_custom_value($key, $prefix = '_site_') {
+		return !empty($this->_custom[$prefix . $key][0]);
+	}
+	
+	/**
+	 * get_custom_value
+	 * @desc	Return the custom value.
+	 * @param	string	$key
+	 * @param	string	$prefix
+	 * @param	string	$type
+	 * @return	string
+	 */
+	public function get_custom_value($key, $prefix = '_site_', $type = 'string') {
+		$value = '';
+		
+		if($this->has_custom_value($key, $prefix)) {
+			$value = $this->_custom[$prefix . $key][0];
+		}
+	
+		switch(strtolower($type)) {
+			case 'boolean':
+				$value = $value === '1' || $value === 'true' ? true : false;
+				break;
+			
+			case 'json':
+				$value = json_decode($value);
+				break;
+			
+			case 'serialized':
+				$value = unserialize($value);
+				break;
+		}
+		
+		return $value;
+	}
+	
+	/**
+	 * get_custom_value_boolean
+	 * @desc	Return the custom value as a boolean.
+	 *			Converts the following;
+	 *			+ '1'		=> true
+	 *			+ 'true'	=> true
+	 * @param	string	$key
+	 * @param	string	$prefix
+	 * @return	string
+	 */
+	public function get_custom_value_boolean($key, $prefix = '_site_') {
+		return $this->get_custom_value($key, $prefix, 'boolean');
+	}
+	
+	/**
+	 * get_custom_value_json
+	 * @desc	Converts the custom value from a JSON object
+	 * @param	string	$key
+	 * @param	string	$prefix
+	 * @return	string
+	 */
+	public function get_custom_value_json($key, $prefix = '_site_') {
+		return $this->get_custom_value($key, $prefix, 'json');
+	}
+	
+	/**
+	 * get_custom_value_serialized
+	 * @desc	Converts the custom value from a serialized object
+	 * @param	string	$key
+	 * @param	string	$prefix
+	 * @return	string
+	 */
+	public function get_custom_value_serialized($key, $prefix = '_site_') {
+		return $this->get_custom_value($key, $prefix, 'serialized');
+	}
+	
+	
 	/*********************************************************
 	 * =Finding Methods
-	 * @desc	Turn the basic data in to Classy objects
+	 * @desc	Turn the basic data in to Classy objects.
 	 *********************************************************/
 	
 	/**
@@ -221,9 +316,10 @@ class Classy {
 		return false;
 	}
 	
+	
 	/*********************************************************
 	 * =WordPress Methods
-	 * @desc	General WordPress methods
+	 * @desc	General WordPress methods.
 	 *********************************************************/
 	
 	/**
@@ -291,5 +387,26 @@ class Classy {
 		}
 		return '';
 	}
+	
+	
+	/*********************************************************
+	 * =Actions
+	 * @desc	Default actions called when the class is setup.
+	 *********************************************************/
+	
+	abstract public function init_register_post_type();
+	abstract public function init_register_taxonomies();
+	abstract public function init_register_images();
+	
+	
+	/*********************************************************
+	 * =Admin Listing
+	 * @desc	Default actions and filters called for
+	 *			listing of columns on the admin area.
+	 *********************************************************/
+	
+	abstract public function filter_manage_column_listing($columns);
+	abstract public function action_manage_column_value($column, $post_id);
+
 	
 }
