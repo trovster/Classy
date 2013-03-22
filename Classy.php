@@ -584,46 +584,48 @@ abstract class Classy {
 	 *********************************************************/
 	
 	/**
-	 * get_classes
+	 * the_attr
+	 * @desc	Output the attributes.
+	 * @param	string	$type
+	 * @param	array	$options
+	 * @output	string
+	 */
+	public function the_attr($type, $options = array()) {
+		$output = '';
+		
+		switch($type) {
+			case 'class':
+				$output = sprintf(' class="%s"', join(' ', $this->get_attr_classes($options)));
+				break;
+			
+			case 'data':
+				$attributes	= $this->get_attr_data($options);
+				$output		= ' ' . implode(' ', array_map(function ($k, $v) { return $k . '="' . $v . '"'; }, array_keys($attributes), array_values($attributes)));
+				break;
+		}
+		
+		echo $output;
+	}
+	
+	/**
+	 * get_attr_classes
 	 * @origin	get_post_class
 	 * @desc	Get the post class, with any optional classes passed as an option.
 	 * @param	array	$classes
 	 * @return	array
 	 */
-	public function get_classes($classes = array()) {
+	public function get_attr_classes($classes = array()) {
 		return get_post_class($classes, $this->post->id);
 	}
 	
 	/**
-	 * the_classes
-	 * @desc	Output the class attribute and classes.
-	 * @param	array	$classes
-	 * @output	string
-	 */
-	public function the_classes($classes = array()) {
-		echo sprintf(' class="%s"', join(' ', $this->get_classes($classes)));
-	}
-	
-	/**
-	 * get_data_attributes
+	 * get_attr_data
 	 * @desc	Prefix the key/value attributes with data-
 	 * @param	array	$attributes
 	 * @return	array
 	 */
-	public function get_data_attributes($attributes = array()) {
+	public function get_attr_data($attributes = array()) {
 		return array_combine(array_map(function ($k) { return 'data-' . $k; }, array_keys($attributes)), $attributes);
-	}
-	
-	/**
-	 * the_data_attributes
-	 * @desc	Output the data attributes.
-	 * @param	array	$attributes
-	 * @output	string
-	 */
-	public function the_data_attributes($attributes = array()) {
-		$attributes = $this->get_data_attributes($attributes);
-		
-		echo ' ' . implode(' ', array_map(function ($k, $v) { return $k . '="' . $v . '"'; }, array_keys($attributes), array_values($attributes)));
 	}
 	
 	
