@@ -27,12 +27,13 @@ abstract class Classy {
 	 */
 	public function __construct($options = array()) {
 		if($options === 'initialize') {
-			add_action('init',			array(&$this, 'init_register_post_type'));
-			add_action('init',			array(&$this, 'init_register_taxonomies'));
-			add_action('init',			array(&$this, 'init_register_images'));
+			add_action('init',			array($this, 'init_register_post_type'));
+			add_action('init',			array($this, 'init_register_taxonomies'));
+			add_action('init',			array($this, 'init_register_images'));
 
-			add_filter(sprintf('manage_edit-%s_columns', $this->get_post_type()), array(&$this, 'filter_manage_column_listing'));
-			add_action(sprintf('manage_%s_posts_custom_column', $this->get_post_type()), array(&$this, 'action_manage_column_value'), 10, 2);
+			add_filter(sprintf('manage_edit-%s_columns', $this->get_post_type()), array($this, 'filter_manage_column_listing'));
+			add_action(sprintf('manage_%s_posts_custom_column', $this->get_post_type()), array($this, 'action_manage_column_value'), 10, 2);
+			add_filter(sprintf('manage_edit-%s_sortable_columns', $this->get_post_type()), array(&$this, 'filter_manage_column_sorting'));
 		}
 		elseif(is_array($options)) {
 			foreach($options as $key => $value) {
@@ -406,6 +407,7 @@ abstract class Classy {
 	 *********************************************************/
 	
 	abstract public function filter_manage_column_listing($columns);
+	abstract public function filter_manage_column_sorting($columns);
 	abstract public function action_manage_column_value($column, $post_id);
 
 	
