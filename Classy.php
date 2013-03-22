@@ -324,13 +324,16 @@ abstract class Classy {
 	 *********************************************************/
 	
 	/**
-	 * get_the_ID
+	 * get_ID
 	 * @origin	get_the_ID()
 	 * @desc	Retrieve the post ID.
 	 * @return	int
 	 */
-	public function get_the_ID() {
+	public function get_ID() {
 		return !empty($this->post) ? $this->post->ID : 0;
+	}
+	public function get_the_ID() {
+		return $this->get_ID();
 	}
 	
 	/**
@@ -340,7 +343,7 @@ abstract class Classy {
 	 * @output	string
 	 */
 	public function the_ID() {
-		echo $this->get_the_ID();
+		echo $this->get_ID();
 	}
 	
 	/**
