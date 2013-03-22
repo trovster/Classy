@@ -394,6 +394,44 @@ abstract class Classy {
 	}
 	
 	/**
+	 * has_title
+	 * @desc	Checks whether the post title exists.
+	 * @return	boolean
+	 */
+	public function has_title() {
+		return isset($this->post->post_title) && strlen($this->post->post_title) > 0;
+	}
+	
+	/**
+	 * get_title
+	 * @origin	get_title()
+	 * @desc	Retrieves the post title and apply the filter.
+	 * @return	string
+	 */
+	public function get_title() {
+		$title	= $this->has_title() ? $this->post->post_title : '';
+		$id		= $this->get_ID();
+
+		return apply_filters('the_title', $title, $id);
+	}
+	public function get_the_title() {
+		return $this->get_title();
+	}
+	
+	/**
+	 * the_title
+	 * @origin	the_title()
+	 * @desc	Output the title, with optional prefixes and suffixes.
+	 * @param	string	$before
+	 * @param	string	$after
+	 * @param	boolean	$echo
+	 * @return	string
+	 */
+	public function the_title($before = '', $after = '') {
+		echo $this->has_title() ? $before . $this->get_title() . $after : '';
+	}
+	
+	/**
 	 * get_permalink
 	 * @desc	Checks whether a permalink is set for this post type.
 	 *			Defaults to 'true' but can be overridden.
