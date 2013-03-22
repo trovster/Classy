@@ -326,7 +326,7 @@ abstract class Classy {
 	/**
 	 * get_the_ID
 	 * @origin	get_the_ID()
-	 * @desc	Retieve the post ID.
+	 * @desc	Retrieve the post ID.
 	 * @return	int
 	 */
 	public function get_the_ID() {
@@ -336,7 +336,8 @@ abstract class Classy {
 	/**
 	 * the_ID
 	 * @origin	the_ID()
-	 * @desc	Echo the post ID.
+	 * @desc	Output the post ID.
+	 * @output	string
 	 */
 	public function the_ID() {
 		echo $this->get_the_ID();
@@ -389,6 +390,239 @@ abstract class Classy {
 		return '';
 	}
 	
+	/**
+	 * get_permalink
+	 * @desc	Checks whether a permalink is set for this post type.
+	 *			Defaults to 'true' but can be overridden.
+	 * @return	boolean
+	 */
+	public function has_permalink() {
+		return true;
+	}
+
+	/**
+	 * get_permalink
+	 * @origin	get_permalink()
+	 * @desc	Retrieve the permalink using the built inWordPress functionality.
+	 * @param	boolean	$leavename
+	 * @return	string
+	 */
+	public function get_permalink($leavename = false) {
+		return get_permalink($this->post->ID, $leavename);
+	}
+	
+	/**
+	 * the_permalink
+	 * @desc	Output the permalink and apply the filter.
+	 * @output	string
+	 */
+	public function the_permalink() {
+		echo apply_filters('the_permalink', $this->get_permalink());
+	}
+	
+	/**
+	 * has_content
+	 * @desc	Checks whether the post content exists.
+	 * @return	boolean 
+	 */
+	public function has_content() {
+		return isset($this->post->post_content) && strlen($this->post->post_content) > 0;
+	}
+	
+	/**
+	 * get_content
+	 * @origin	get_the_content()
+	 * @desc	Mirrors the default WordPress function, but uses $this->post.
+	 * @global	boolean		$more
+	 * @global	int			$page
+	 * @global	array		$pages
+	 * @global	boolean		$multipage
+	 * @global	boolean		$preview
+	 * @param	string		$more_link_text
+	 * @param	boolean		$stripteaser 
+	 * @return	string 
+	 */
+	public function get_content($more_link_text = null, $stripteaser = false) {
+		global $more, $page, $pages, $multipage, $preview;
+
+		if(is_null($more_link_text)) {
+			$more_link_text = '(more...)';
+		}
+
+		$output		= '';
+		$hasTeaser	= false;
+
+		// If post password required and it doesn't match the cookie.
+		if(post_password_required($this->post)) {
+			return get_the_password_form();
+		}
+		
+		// if the requested page doesn't exist
+		// give them the highest numbered page that DOES exist
+		if($page > count($pages)) {
+			$page = count($pages);
+		}
+
+		$content = $this->has_content() ? $this->post->post_content : '';
+		
+		if(preg_match('/<!--more(.*?)?-->/', $content, $matches)) {
+			$content = explode($matches[0], $content, 2);
+			if (!empty($matches[1]) && !empty($more_link_text)) {
+				$more_link_text = strip_tags(wp_kses_no_null(trim($matches[1])));
+			}
+			$hasTeaser = true;
+		}
+		else {
+			$content = array($content);
+		}
+		
+		if((false !== strpos($this->post->post_content, '<!--noteaser-->') && ((!$multipage) || ($page==1)))) {
+			$stripteaser = true;
+		}
+
+		$teaser = $content[0];
+		
+		if($more && $stripteaser && $hasTeaser) {
+			$teaser = '';
+		}
+
+		$output .= $teaser;
+		
+		if(count($content) > 1) {
+			if($more) {
+				$output .= '<span id="more-' . $this->post->ID . '"></span>' . $content[1];
+			}
+			else {
+				if(!empty($more_link_text)) {
+					$more_link = sprintf(' <a href="%s#more-%d" class="more-link">%s</a>', $this->get_permalink(), $this->post->ID, $more_link_text);
+					$output .= apply_filters('the_content_more_link', $more_link, $more_link_text);
+				}
+				$output = force_balance_tags($output);
+			}
+		}
+		
+		// preview fix for javascript bug with foreign languages
+		if($preview) {
+			$output = preg_replace_callback('/\%u([0-9A-F]{4})/', '_convert_urlencoded_to_entities', $output);
+		}	
+
+		return $output;
+	}
+	public function get_the_content($more_link_text = null, $stripteaser = false) {
+		return $this->get_content($more_link_text, $stripteaser);
+	}
+	
+	/**
+	 * the_content
+	 * @desc	Output the content and apply the filter.
+	 * @param	string		$more_link_text
+	 * @param	boolean		$stripteaser
+	 * @output	string
+	 */
+	public function the_content($more_link_text = null, $stripteaser = false) {
+		$content = $this->get_content($more_link_text, $stripteaser);
+		$content = apply_filters('the_content', $content);
+		$content = str_replace(']]>', ']]&gt;', $content);
+		
+		echo $content;
+	}
+	
+	/**
+	 * has_excerpt
+	 * @desc	Checks whether the post excerpt exists.
+	 * @return	boolean 
+	 */
+	public function has_excerpt() {
+		return isset($this->post->post_excerpt) && strlen($this->post->post_excerpt) > 0;
+	}
+	
+	/**
+	 * get_excerpt
+	 * @origin	get_the_excerpt
+	 * @desc	
+	 * @param	int		$length
+	 * @param	string	$append
+	 * @return	string 
+	 */
+	public function get_excerpt($length = 12, $append = '…') {
+		$excerpt = $this->has_excerpt() ? $this->post->post_excerpt : '';
+		
+		if(empty($excerpt)) {
+			$excerpt = $this->post->post_content;
+		}
+		
+		if(is_numeric($length)) {
+			$excerpt = self::truncate_words($excerpt, $length, $append);
+		}
+		
+		$excerpt = apply_filters('get_the_excerpt', $excerpt);
+		
+		return $excerpt;
+	}
+	public function get_the_excerpt($length = 12, $append = '…') {
+		return $this->get_excerpt($length, $append);
+	}
+	
+	/**
+	 * the_excerpt
+	 * @desc	Output the excerpt and apply the filter.
+	 * @param	int		$length
+	 * @param	string	$append
+	 * @output	string 
+	 */
+	public function the_excerpt($length = 12, $append = '…') {
+		echo apply_filters('the_excerpt', $this->get_excerpt($length, $append));
+	}
+	
+	
+	/*********************************************************
+	 * =Common Methods
+	 * @desc	Useful common methods.
+	 *********************************************************/
+	
+	/**
+	 * get_classes
+	 * @origin	get_post_class
+	 * @desc	Get the post class, with any optional classes passed as an option.
+	 * @param	array	$classes
+	 * @return	array
+	 */
+	public function get_classes($classes = array()) {
+		return get_post_class($classes, $this->post->id);
+	}
+	
+	/**
+	 * the_classes
+	 * @desc	Output the class attribute and classes.
+	 * @param	array	$classes
+	 * @output	string
+	 */
+	public function the_classes($classes = array()) {
+		echo sprintf(' class="%s"', join(' ', $this->get_classes($classes)));
+	}
+	
+	/**
+	 * get_data_attributes
+	 * @desc	Prefix the key/value attributes with data-
+	 * @param	array	$attributes
+	 * @return	array
+	 */
+	public function get_data_attributes($attributes = array()) {
+		return array_combine(array_map(function ($k) { return 'data-' . $k; }, array_keys($attributes)), $attributes);
+	}
+	
+	/**
+	 * the_data_attributes
+	 * @desc	Output the data attributes.
+	 * @param	array	$attributes
+	 * @output	string
+	 */
+	public function the_data_attributes($attributes = array()) {
+		$attributes = $this->get_data_attributes($attributes);
+		
+		echo ' ' . implode(' ', array_map(function ($k, $v) { return $k . '="' . $v . '"'; }, array_keys($attributes), array_values($attributes)));
+	}
+	
 	
 	/*********************************************************
 	 * =Actions
@@ -409,6 +643,88 @@ abstract class Classy {
 	abstract public function filter_manage_column_listing($columns);
 	abstract public function filter_manage_column_sorting($columns);
 	abstract public function action_manage_column_value($column, $post_id);
-
 	
+	
+	/*********************************************************
+	 * =Loops
+	 * @desc	Standardise looping.
+	 *********************************************************/
+	
+	/**
+	 * loop
+	 * @desc	
+	 * @param	array	$options
+	 * @param	string	$slug
+	 * @param	string	$name
+	 * @return	string
+	 */
+	public static function loop($options, $slug, $name = null) {
+		$original = pre_loop($options);
+		
+		ob_start();
+		get_template_part('loop', 'slideshow');
+		$content = ob_get_clean();
+
+		Classy::post_loop($original);
+		
+		return $content;
+	}
+
+	/**
+	 * pre_loop
+	 * @desc	Used before a custom loop.
+	 *			Parameter is the WP_Query options for the new loop.
+	 *			Saves the original query and post data.
+	 *			Returns the new query, along with the original wp_query and post.
+	 * @global	WP_Query	$wp_query
+	 * @global	object		$post
+	 * @param	array		$options
+	 * @return	array
+	 */
+	public static function pre_loop($options) {
+		global $wp_query, $post;
+
+		$original_post		= null;
+		$original_wp_query	= null;
+
+		if(!empty($post)) {
+			$original_post = clone $post;
+		}
+		if(!empty($wp_query)) {
+			$original_wp_query = clone $wp_query;
+		}
+
+		$wp_query = new WP_Query($options);
+
+		return compact('wp_query', 'original_wp_query', 'original_post');
+   }
+   
+   /**
+    * post_loop
+    * @desc		Used after a custom loop.
+    *			Parameter is the original array saved from the pre loop function.
+    *			Resets the query and post data.
+    *			Returns the original wp_query and post data.
+	* @global	WP_Query	$wp_query
+	* @global	object		$post
+    * @param	array		$original
+    * @return	array
+    */
+	public static function post_loop($original) {
+		global $wp_query, $post;
+
+		extract($original);
+
+		if(!empty($original_wp_query)) {
+			$wp_query = clone $original_wp_query;
+		}
+		if(!empty($original_post)) {
+			$post = clone $original_post;
+		}
+
+		wp_reset_query();
+
+		return compact('wp_query', 'post');
+	}
+
 }
