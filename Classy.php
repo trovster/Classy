@@ -360,10 +360,10 @@ abstract class Classy {
 	 * @origin	get_the_date()
 	 * @desc	Retrieves the post date and apply the filter.
 	 * @param	string		$d
-	 * @return	string|null 
+	 * @return	string 
 	 */
 	public function get_date($d = '') {
-		$the_date = ($d === '') ? mysql2date(get_option('date_format'), $this->post->post_date) : mysql2date($d, $this->post->post_date);;
+		$the_date = ($d === '') ? mysql2date(get_option('date_format'), $this->post->post_date) : mysql2date($d, $this->post->post_date);
 
 		return apply_filters('get_the_date', $the_date, $d);
 	}
@@ -377,7 +377,7 @@ abstract class Classy {
 	 * @param	string		$d
 	 * @param	string		$before
 	 * @param	string		$after
-	 * @return	string|null
+	 * @output	string
 	 */
 	public function the_date($d = '', $before = '', $after = '') {
 		global $currentday, $previousday;
@@ -808,13 +808,13 @@ abstract class Classy {
 	 * @return	string
 	 */
 	public static function loop($options, $slug, $name = null) {
-		$original = pre_loop($options);
+		$original = self::pre_loop($options);
 		
 		ob_start();
-		get_template_part('loop', 'slideshow');
+		get_template_part($slug, $name);
 		$content = ob_get_clean();
 
-		Classy::post_loop($original);
+		self::post_loop($original);
 		
 		return $content;
 	}
