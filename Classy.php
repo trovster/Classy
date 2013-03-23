@@ -347,50 +347,56 @@ abstract class Classy {
 	}
 	
 	/**
-	 * has_thumbnail
-	 * @origin	has_post_thumbnail()
-	 * @desc	Checks whether the post has a thumbnail.
-	 * @return	boolean 
+	 * has_date
+	 * @desc	Checks whether the post date exists.
+	 * @return	boolean
 	 */
-	public function has_thumbnail() {
-		return (bool) get_post_meta($this->get_the_ID(), '_thumbnail_id', true);
+	public function has_date() {
+		return isset($this->post->post_date) && strlen($this->post->post_date) > 0;
 	}
 	
 	/**
-	 * get_thumbnail_id
-	 * @origin	get_post_thumbnail_id()
-	 * @desc	Retrieve the post thumbnail ID
-	 * @return	boolean 
+	 * get_date
+	 * @origin	get_the_date()
+	 * @desc	Retrieves the post date and apply the filter.
+	 * @param	string		$d
+	 * @return	string|null 
 	 */
-	public function get_thumbnail_id() {
-		return get_post_meta($this->get_the_ID(), '_thumbnail_id', true);
+	public function get_date($d = '') {
+		$the_date = ($d === '') ? mysql2date(get_option('date_format'), $this->post->post_date) : mysql2date($d, $this->post->post_date);;
+
+		return apply_filters('get_the_date', $the_date, $d);
 	}
 	
 	/**
-	 * get_thumbnail
-	 * @origin	get_the_post_thumbnail()
-	 * @desc	Retrieve the post thumbnail HTML.
-	 * @param	string			$size
-	 * @param	string|array	$attr
-	 * @return	string 
+	 * the_date
+	 * @origin	the_date()
+	 * @desc	Output the date, with optional format, prefixes and suffixes.
+	 * @global	string		$currentday
+	 * @global	string		$previousday
+	 * @param	string		$d
+	 * @param	string		$before
+	 * @param	string		$after
+	 * @return	string|null
 	 */
-	public function get_thumbnail($size = 'post-thumbnail', $attr = '') {
-		if($this->has_thumbnail()) {
-			$size = apply_filters('post_thumbnail_size', $size);
-			
-			do_action('begin_fetch_post_thumbnail_html', $this->get_the_ID(), $this->get_thumbnail_id(), $size);
+	public function the_date($d = '', $before = '', $after = '') {
+		global $currentday, $previousday;
+		
+		$the_date = '';
+		
+		if($currentday != $previousday) {
+			$the_date	.= $before;
+			$the_date	.= $this->get_the_date($d);
+			$the_date	.= $after;
+			$previousday = $currentday;
 
-			if(in_the_loop()) {
-				update_post_thumbnail_cache();
-			}
-
-			$html = wp_get_attachment_image($this->get_thumbnail_id(), $size, false, $attr);
-			
-			do_action('end_fetch_post_thumbnail_html', $this->get_the_ID(), $this->get_thumbnail_id(), $size);
-			
-			return apply_filters('post_thumbnail_html', $html, $this->get_the_ID(), $this->get_thumbnail_id(), $size, $attr);
+			$the_date = apply_filters('the_date', $the_date, $d, $before, $after);
 		}
-		return '';
+
+		echo $the_date;
+	}
+	public function get_the_date() {
+		return $this->get_date();
 	}
 	
 	/**
@@ -424,7 +430,6 @@ abstract class Classy {
 	 * @desc	Output the title, with optional prefixes and suffixes.
 	 * @param	string	$before
 	 * @param	string	$after
-	 * @param	boolean	$echo
 	 * @return	string
 	 */
 	public function the_title($before = '', $after = '') {
@@ -593,7 +598,7 @@ abstract class Classy {
 		}
 		
 		if(is_numeric($length)) {
-			$excerpt = self::truncate_words($excerpt, $length, $append);
+//			$excerpt = self::truncate_words($excerpt, $length, $append); // @todo add truncation
 		}
 		
 		$excerpt = apply_filters('get_the_excerpt', $excerpt);
@@ -615,6 +620,53 @@ abstract class Classy {
 		echo apply_filters('the_excerpt', $this->get_excerpt($length, $append));
 	}
 	
+	/**
+	 * has_thumbnail
+	 * @origin	has_post_thumbnail()
+	 * @desc	Checks whether the post has a thumbnail.
+	 * @return	boolean 
+	 */
+	public function has_thumbnail() {
+		return (bool) get_post_meta($this->get_the_ID(), '_thumbnail_id', true);
+	}
+	
+	/**
+	 * get_thumbnail_id
+	 * @origin	get_post_thumbnail_id()
+	 * @desc	Retrieve the post thumbnail ID
+	 * @return	boolean 
+	 */
+	public function get_thumbnail_id() {
+		return get_post_meta($this->get_the_ID(), '_thumbnail_id', true);
+	}
+	
+	/**
+	 * get_thumbnail
+	 * @origin	get_the_post_thumbnail()
+	 * @desc	Retrieve the post thumbnail HTML.
+	 * @param	string			$size
+	 * @param	string|array	$attr
+	 * @return	string 
+	 */
+	public function get_thumbnail($size = 'post-thumbnail', $attr = '') {
+		if($this->has_thumbnail()) {
+			$size = apply_filters('post_thumbnail_size', $size);
+			
+			do_action('begin_fetch_post_thumbnail_html', $this->get_the_ID(), $this->get_thumbnail_id(), $size);
+
+			if(in_the_loop()) {
+				update_post_thumbnail_cache();
+			}
+
+			$html = wp_get_attachment_image($this->get_thumbnail_id(), $size, false, $attr);
+			
+			do_action('end_fetch_post_thumbnail_html', $this->get_the_ID(), $this->get_thumbnail_id(), $size);
+			
+			return apply_filters('post_thumbnail_html', $html, $this->get_the_ID(), $this->get_thumbnail_id(), $size, $attr);
+		}
+		return '';
+	}
+	
 	
 	/*********************************************************
 	 * =Common Methods
@@ -633,7 +685,7 @@ abstract class Classy {
 		
 		switch($type) {
 			case 'class':
-				$output = sprintf(' class="%s"', join(' ', $this->get_attr_classes($options)));
+				$output = sprintf(' class="%s"', implode(' ', $this->get_attr_classes($options)));
 				break;
 			
 			case 'data':
