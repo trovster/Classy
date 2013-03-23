@@ -386,7 +386,7 @@ abstract class Classy {
 		
 		if($currentday != $previousday) {
 			$the_date	.= $before;
-			$the_date	.= $this->get_the_date($d);
+			$the_date	.= $this->get_date($d);
 			$the_date	.= $after;
 			$previousday = $currentday;
 
