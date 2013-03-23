@@ -19,8 +19,8 @@ class Classy_Page extends Classy {
 		parent::__construct($options);
 		
 		if($options === 'initialize') {
-			add_filter(sprintf('manage_pages_columns', $this->get_post_type()), array($this, 'filter_manage_column_listing'));
-			add_action(sprintf('manage_pages_custom_column', $this->get_post_type()), array($this, 'action_manage_column_value'), 10, 2);
+			add_filter(sprintf('manage_pages_columns', $this->get_post_type()),			array($this, 'filter_manage_column_listing'));
+			add_action(sprintf('manage_pages_custom_column', $this->get_post_type()),	array($this, 'action_manage_column_value'), 10, 2);
 		}
 	
 		return $this;
@@ -124,4 +124,11 @@ class Classy_Page extends Classy {
 		return parent::find_by_slug($slug, 'page');
 	}
 
+}
+
+/**
+ * Hook in to WordPress
+ */
+if(class_exists('Classy_Page')) {
+	$classy_page = new Classy_Page('initialize');
 }

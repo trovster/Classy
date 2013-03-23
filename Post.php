@@ -19,8 +19,8 @@ class Classy_Post extends Classy {
 		parent::__construct($options);
 		
 		if($options === 'initialize') {
-			add_filter(sprintf('manage_posts_columns', $this->get_post_type()), array($this, 'filter_manage_column_listing'));
-			add_action(sprintf('manage_posts_custom_column', $this->get_post_type()), array($this, 'action_manage_column_value'), 10, 2);
+			add_filter(sprintf('manage_posts_columns', $this->get_post_type()),			array($this, 'filter_manage_column_listing'));
+			add_action(sprintf('manage_posts_custom_column', $this->get_post_type()),	array($this, 'action_manage_column_value'), 10, 2);
 		}
 	
 		return $this;
@@ -46,6 +46,24 @@ class Classy_Post extends Classy {
 	public function init_register_images() {
 		add_image_size($this->get_post_type() . '-thumbnail', 300, 300, true);
 		add_image_size($this->get_post_type() . '-large', 1024, 768, true);
+	}
+	
+	/**
+	 * get_options
+	 * @desc	Options for WP_Query.
+	 * @param	array	$options
+	 * @return	array
+	 */
+	public static function get_options($options = array()) {
+		return array_merge(array(
+			'post_type'			=> 'post',
+			'orderby'			=> 'date',
+			'order'				=> 'DESC',
+			'title_li'			=> '',
+			'echo'				=> 0,
+			'depth'				=> 1,
+			'posts_per_page'	=> 10,
+		), $options);
 	}
 	
 	
@@ -103,4 +121,11 @@ class Classy_Post extends Classy {
 		return parent::find_by_slug($slug, 'post');
 	}
 
+}
+
+/**
+ * Hook in to WordPress
+ */
+if(class_exists('Classy_Post')) {
+	$classy_post = new Classy_Post('initialize');
 }
