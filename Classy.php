@@ -579,7 +579,7 @@ abstract class Classy {
 	
 	/**
 	 * get_excerpt
-	 * @origin	get_the_excerpt
+	 * @origin	get_the_excerpt()
 	 * @desc	
 	 * @param	int		$length
 	 * @param	string	$append
@@ -686,6 +686,60 @@ abstract class Classy {
 	abstract public function filter_manage_column_listing($columns);
 	abstract public function filter_manage_column_sorting($columns);
 	abstract public function action_manage_column_value($column, $post_id);
+	
+	
+	/*********************************************************
+	 * =HTML
+	 * @desc	Generating HTML elements.
+	 *********************************************************/
+	
+	/**
+	 * html_tag
+	 * @desc	Create a HTML tag.
+	 * @param	string			$tag
+	 * @param	array|string	$attr
+	 * @param	string|bool		$content	The content to place in the tag, or false for no closing tag
+	 * @return	string
+	 */
+	public static function html_tag($tag, $attr = array(), $content = false) {
+		$html			= '';
+		$has_content	= (bool) ($content !== false and $content !== null);
+		
+		$html .= '<' . $tag;
+		$html .= (!empty($attr)) ? ' '.(is_array($attr) ? self::array_to_attr($attr) : $attr) : '';
+		$html .= $has_content ? '>' : ' />';
+		$html .= $has_content ? $content . '</' . $tag . '>' : '';
+
+		return $html;
+	}
+	
+	/**
+	 * array_to_attr
+	 * @desc	Takes an array of attributes and turns it into a string for an html tag
+	 * @param	array	$attr
+	 * @return	string
+	 */
+	public static function array_to_attr($attr) {
+		$attr_str = '';
+
+		if (!is_array($attr)) {
+			$attr = (array) $attr;
+		}
+
+		foreach($attr as $property => $value) {
+			if(is_null($value)) {
+				continue;
+			}
+
+			if(is_numeric($property)) {
+				$property = $value;
+			}
+
+			$attr_str .= sprintf('%s="%s" ', $property, $value);
+		}
+
+		return trim($attr_str);
+	}
 	
 	
 	/*********************************************************
