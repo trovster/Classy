@@ -86,5 +86,21 @@ class Classy_Post extends Classy {
 		
 		switch($column) {}
 	}
+	
+	
+	/*********************************************************
+	 * =Finding Methods
+	 * @desc	Turn the basic data in to Classy objects.
+	 *********************************************************/
+	
+	/**
+	 * find_by_slug
+	 * @desc	Find a post by 'slug'.
+	 * @param	string	$slug
+	 * @return	mixed 
+	 */
+	public static function find_by_slug($slug) {
+		return parent::find_by_slug($slug, 'post');
+	}
 
 }
