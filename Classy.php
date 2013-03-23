@@ -590,7 +590,7 @@ abstract class Classy {
 	 * @param	string	$append
 	 * @return	string 
 	 */
-	public function get_excerpt($length = 12, $append = '…') {
+	public function get_excerpt($length = 200, $append = '…') {
 		$excerpt = $this->has_excerpt() ? $this->post->post_excerpt : '';
 		
 		if(empty($excerpt)) {
@@ -598,17 +598,17 @@ abstract class Classy {
 		}
 		
 		if(is_numeric($length)) {
-//			$excerpt = self::truncate_words($excerpt, $length, $append); // @todo add truncation
+			$excerpt = self::substr_letters($excerpt, $length, $append);
 		}
 		
 		$excerpt = apply_filters('get_the_excerpt', $excerpt);
 		
 		return $excerpt;
 	}
-	public function get_the_excerpt($length = 12, $append = '…') {
+	public function get_the_excerpt($length = 200, $append = '…') {
 		return $this->get_excerpt($length, $append);
 	}
-	
+
 	/**
 	 * the_excerpt
 	 * @desc	Output the excerpt and apply the filter.
@@ -616,7 +616,7 @@ abstract class Classy {
 	 * @param	string	$append
 	 * @output	string 
 	 */
-	public function the_excerpt($length = 12, $append = '…') {
+	public function the_excerpt($length = 200, $append = '…') {
 		echo apply_filters('the_excerpt', $this->get_excerpt($length, $append));
 	}
 	
@@ -738,6 +738,43 @@ abstract class Classy {
 	abstract public function filter_manage_column_listing($columns);
 	abstract public function filter_manage_column_sorting($columns);
 	abstract public function action_manage_column_value($column, $post_id);
+	
+
+	/*********************************************************
+	 * =Miscellaneous
+	 * @desc	Useful common methods, non post type methods.
+	 *********************************************************/
+	
+	/**
+	 * substr_words
+	 * @desc	Truncate text by the word count.
+	 * @param	string $text
+	 * @param	int $length
+	 * @param	string $append
+	 * @return	string
+	 */
+	public static function substr_words($text, $length, $append = '…') {
+		$phrase_array = explode(' ', $text);
+		if(count($phrase_array) > $length && $length > 0) {
+			$text = implode(' ',array_slice($phrase_array, 0, $length)) . $append;
+		}
+		return $text;
+	}
+	
+	/**
+	 * substr_letters
+	 * @desc	Truncate text by letter count.
+	 * @param	string $text
+	 * @param	int $length
+	 * @param	string $append
+	 * @return	string
+	 */
+	public static function substr_letters($text, $length, $append = '…') {
+		if(strlen($text) > $length) {
+			$text = substr($text, 0, $length) . $append;
+		}
+		return $text;
+	}
 	
 	
 	/*********************************************************
