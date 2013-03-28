@@ -669,6 +669,17 @@ abstract class Classy {
 		return '';
 	}
 	
+	/**
+	 * the_thumbnail
+	 * @desc	Output the post thumbnail HTML.
+	 * @param	string			$size
+	 * @param	string|array	$attr
+	 * @return	string 
+	 */
+	public function the_thumbnail($size = 'post-thumbnail', $attr = '') {
+		return $this->get_thumbnail($size, $attr);
+	}
+	
 	
 	/*********************************************************
 	 * =Common Methods
