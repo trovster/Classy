@@ -107,6 +107,19 @@ class Classy_Post extends Classy {
 	
 	
 	/*********************************************************
+	 * =Admin Boxes
+	 * @desc	Default actions and filters called for adding
+	 *			extra content / boxes in the admin area.
+	 *********************************************************/
+
+	/**
+	* action_admin_init_meta_box
+	* @desc		Assign the meta box.
+	*/
+	public function action_admin_init_meta_box() {}
+	
+	
+	/*********************************************************
 	 * =Finding Methods
 	 * @desc	Turn the basic data in to Classy objects.
 	 *********************************************************/

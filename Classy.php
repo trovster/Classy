@@ -30,10 +30,13 @@ abstract class Classy {
 			add_action('init',			array($this, 'init_register_post_type'));
 			add_action('init',			array($this, 'init_register_taxonomies'));
 			add_action('init',			array($this, 'init_register_images'));
+	
+			add_action('save_post',		array($this, 'action_save_post_meta_box'));
+			add_action('admin_init',	array($this, 'action_admin_init_meta_box'));
 
 			add_filter(sprintf('manage_edit-%s_columns', $this->get_post_type()), array($this, 'filter_manage_column_listing'));
 			add_action(sprintf('manage_%s_posts_custom_column', $this->get_post_type()), array($this, 'action_manage_column_value'), 10, 2);
-			add_filter(sprintf('manage_edit-%s_sortable_columns', $this->get_post_type()), array(&$this, 'filter_manage_column_sorting'));
+			add_filter(sprintf('manage_edit-%s_sortable_columns', $this->get_post_type()), array($this, 'filter_manage_column_sorting'));
 		}
 		elseif(is_array($options)) {
 			foreach($options as $key => $value) {
@@ -718,6 +721,9 @@ abstract class Classy {
 	 * @return	array
 	 */
 	public function get_attr_classes($classes = array()) {
+		if($this->has_thumbnail()) {
+			$classes[] = 'has-image';
+		}
 		return get_post_class($classes, $this->post->ID);
 	}
 	
@@ -751,6 +757,44 @@ abstract class Classy {
 	abstract public function filter_manage_column_listing($columns);
 	abstract public function filter_manage_column_sorting($columns);
 	abstract public function action_manage_column_value($column, $post_id);
+	
+	
+	/*********************************************************
+	 * =Admin Boxes
+	 * @desc	Default actions and filters called for adding
+	 *			extra content / boxes in the admin area.
+	 *********************************************************/
+
+	abstract public function action_admin_init_meta_box();
+	
+	/**
+	* action_save_post_meta_box
+	* @desc		Custom fields must be prefixed with _site_ to be saved automatically.
+	* @see		http://codex.wordpress.org/Function_Reference/update_post_meta
+	* @param	int		$post_id
+	* @return	int		$post_id
+	*/
+	public function action_save_post_meta_box($post_id) {
+		foreach($_POST as $key => $value) {
+			if(strpos($key, '_site_') !== false) {
+				$current_data	= get_post_meta($post_id, $key, true);
+				$new_data		= !empty($value) ? $value : null;
+
+				if(is_null($new_data)) {
+					delete_post_meta($post_id, $key);
+				}
+				else {
+					if(strpos($key, 'date') !== false) {
+						$new_data = strtotime($new_data); // convert to timestamp
+					}
+
+					update_post_meta($post_id, $key, $new_data, $current_data);
+				}
+			}
+		}
+
+		return $post_id;
+	}
 	
 
 	/*********************************************************
