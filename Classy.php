@@ -76,15 +76,16 @@ abstract class Classy {
 		if(method_exists($this, 'get_' . $key)) {
 			return $this->{'get_' . $key}();
 		}
-		elseif(isset($this->{$key})) {
-			return $this->{$key};
-		}
 		elseif($this->has_custom_value($key)) {
 			return $this->get_custom_value($key);
 		}
 		elseif(isset($this->_post->{$key})) {
 			return $this->_post->{$key};
 		}
+		elseif(isset($this->{$key})) {
+			return $this->{$key};
+		}
+		
 		return null;
 	}
 	
@@ -98,15 +99,16 @@ abstract class Classy {
 		if(method_exists($this, 'get_' . $key)) {
 			$value = $this->{'get_' . $key}();
 		}
-		elseif(isset($this->{$key})) {
+		elseif(property_exists($this->_post->{$key})) {
+			$value = $this->_post->{$key};
+		}
+		elseif(property_exists($this->{$key})) {
 			$value = $this->{$key};
 		}
 		elseif($this->has_custom_value($key)) {
 			$value = $this->get_custom_value($key);
 		}
-		elseif(isset($this->_post->{$key})) {
-			$value = $this->_post->{$key};
-		}
+		
 		return !empty($value) ? true : false;
 	}
 	
@@ -705,7 +707,7 @@ abstract class Classy {
 	 * @return	array
 	 */
 	public function get_attr_classes($classes = array()) {
-		return get_post_class($classes, $this->post->id);
+		return get_post_class($classes, $this->post->ID);
 	}
 	
 	/**
