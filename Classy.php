@@ -677,7 +677,7 @@ abstract class Classy {
 	 * @return	string 
 	 */
 	public function the_thumbnail($size = 'post-thumbnail', $attr = '') {
-		return $this->get_thumbnail($size, $attr);
+		echo $this->get_thumbnail($size, $attr);
 	}
 	
 	
