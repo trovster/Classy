@@ -683,6 +683,61 @@ abstract class Classy {
 		echo $this->get_thumbnail($size, $attr);
 	}
 	
+	/**
+	 * get_thumbnail_alt
+	 * @desc	Retrieve the thumbnail alt meta data.
+	 * @return	string
+	 */
+	public function get_thumbnail_alt() {
+		$custom = get_post_custom($this->get_thumbnail_id());
+		return !empty($custom['_wp_attachment_image_alt']) && !empty($custom['_wp_attachment_image_alt'][0]) ? $custom['_wp_attachment_image_alt'][0] : '';
+	}
+	
+	/**
+	 * the_thumbnail_alt
+	 * @desc	Output the thumbnail alt meta data.
+	 * @output	string
+	 */
+	public function the_thumbnail_alt() {
+		echo $this->get_thumbnail_alt();
+	}
+	
+	/**
+	 * get_thumbnail_caption
+	 * @desc	Retrieve the thumbnail caption (post excerpt).
+	 * @return	string
+	 */
+	public function get_thumbnail_caption() {
+		return get_post($this->get_thumbnail_id())->post_excerpt;
+	}
+	
+	/**
+	 * the_thumbnail_caption
+	 * @desc	Retrieve the thumbnail caption (post excerpt).
+	 * @output	string
+	 */
+	public function the_thumbnail_caption() {
+		echo $this->get_thumbnail_caption();
+	}
+	
+	/**
+	 * get_thumbnail_description
+	 * @desc	Retrieve the thumbnail description (post content).
+	 * @return	string
+	 */
+	public function get_thumbnail_description() {
+		return get_post($this->get_thumbnail_id())->post_content;
+	}
+	
+	/**
+	 * the_thumbnail_description
+	 * @desc	Output the thumbnail description (post content).
+	 * @output	string
+	 */
+	public function the_thumbnail_description() {
+		echo $this->get_thumbnail_description();
+	}
+	
 	
 	/*********************************************************
 	 * =Common Methods
