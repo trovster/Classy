@@ -684,13 +684,23 @@ abstract class Classy {
 	}
 	
 	/**
+	 * has_thumbnail_alt
+	 * @desc	Checks whether the thumbnail has a ALT meta data.
+	 * @return	string
+	 */
+	public function has_thumbnail_alt() {
+		$custom = get_post_custom($this->get_thumbnail_id());
+		return !empty($custom['_wp_attachment_image_alt']) && !empty($custom['_wp_attachment_image_alt'][0]) ? true : false;
+	}
+	
+	/**
 	 * get_thumbnail_alt
-	 * @desc	Retrieve the thumbnail alt meta data.
+	 * @desc	Retrieve the thumbnail ALT meta data.
 	 * @return	string
 	 */
 	public function get_thumbnail_alt() {
 		$custom = get_post_custom($this->get_thumbnail_id());
-		return !empty($custom['_wp_attachment_image_alt']) && !empty($custom['_wp_attachment_image_alt'][0]) ? $custom['_wp_attachment_image_alt'][0] : '';
+		return $this->has_thumbnail_alt() ? $custom['_wp_attachment_image_alt'][0] : '';
 	}
 	
 	/**
@@ -703,12 +713,21 @@ abstract class Classy {
 	}
 	
 	/**
+	 * has_thumbnail_caption
+	 * @desc	Checks whether the thumbnail has a caption.
+	 * @return	string
+	 */
+	public function has_thumbnail_caption() {
+		return !empty(get_post($this->get_thumbnail_id())->post_excerpt) ? true : false;
+	}
+	
+	/**
 	 * get_thumbnail_caption
 	 * @desc	Retrieve the thumbnail caption (post excerpt).
 	 * @return	string
 	 */
 	public function get_thumbnail_caption() {
-		return get_post($this->get_thumbnail_id())->post_excerpt;
+		return $this->has_thumbnail_caption() ? get_post($this->get_thumbnail_id())->post_excerpt : '';
 	}
 	
 	/**
@@ -721,12 +740,21 @@ abstract class Classy {
 	}
 	
 	/**
+	 * has_thumbnail_description
+	 * @desc	Checks whether the thumbnail has a description.
+	 * @return	string
+	 */
+	public function has_thumbnail_description() {
+		return !empty(get_post($this->get_thumbnail_id())->post_content) ? true : false;
+	}
+	
+	/**
 	 * get_thumbnail_description
 	 * @desc	Retrieve the thumbnail description (post content).
 	 * @return	string
 	 */
 	public function get_thumbnail_description() {
-		return get_post($this->get_thumbnail_id())->post_content;
+		return $this->has_thumbnail_description() ? get_post($this->get_thumbnail_id())->post_content : '';
 	}
 	
 	/**
