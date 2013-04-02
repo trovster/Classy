@@ -879,6 +879,70 @@ abstract class Classy {
 		return $post_id;
 	}
 	
+	/**
+	 * _meta_field_html
+	 * @desc	Returns custom field HTML inputs.
+	 *			Supports some HTML5 types, as well as checkboxes & textareas.
+	 * @param	string	$value
+	 * @param	string	$id
+	 * @param	string	$label_text
+	 * @param	boolean	$auto_save
+	 * @param	string	$type
+	 * @return	string
+	 */
+	protected function _meta_field_html($value, $id, $label_text, $auto_save = true, $type = 'text') {
+		$type		= strtolower($type);
+		$name		= $auto_save === true ? '_site_' . $id : $id;
+		$label		= sprintf('<label for="%s">%s</label>', esc_attr($id), $label_text);
+		$classes	= array('custom-field', 'custom-field-type-' . $type, 'custom-field-' . $id);
+
+		switch($type) {
+			case 'text':
+			case 'url':
+			case 'search':
+			case 'tel':
+			case 'number':
+			case 'date':
+				$field = sprintf('<input type="%4$s" id="%2$s" name="%3$s" value="%1$s" />', esc_attr($value), esc_attr($id), esc_attr($name), esc_attr($type));
+				break;
+			
+			case 'textarea':
+				$field = sprintf('<textarea id="%2$s" name="%3$s">%1$s</textarea>', $value, esc_attr($id), esc_attr($name));
+				break;
+			
+			case 'checkbox':
+				$checked	= $value === true ? 'checked="checked"' : '';
+				$fields		= array(
+					sprintf('<input type="hidden" name="%3$s" value="%1$s" />', false, esc_attr($id), esc_attr($name)),
+					sprintf('<input type="checkbox" id="%2$s" name="%3$s" value="%1$s" %4$s />', true, esc_attr($id), esc_attr($name), $checked),
+				);
+				$field		= implode("\r\n", $fields);
+				break;
+		}
+		
+		return !empty($label) && !empty($field) ? ($type === 'checkbox' ? sprintf('<p class="%3$s">%2$s%1$s</p>', $label, $field, implode(' ', $classes)) : sprintf('<p class="%3$s">%1$s%2$s</p>', $label, $field, implode(' ', $classes))) : '';
+	}
+
+	/**
+	 * _meta_field_editor
+	 * @desc	Returns the custom WYSIWYG editor.
+	 * @param	string	$content
+	 * @param	string	$editor_id
+	 * @param	array	$options
+	 * @return	string
+	 */
+	protected function _meta_field_editor($content, $editor_id, $options = array()) {
+		$args = shortcode_atts(array(
+			'tinymce'			=> true,
+			'media_buttons'		=> true,
+			'textarea_name'		=> '',
+			'textarea_rows'		=> 10,
+			'editor_class'		=> '',
+		), $options);
+		
+		return wp_editor($content, $editor_id, $args);
+	}
+	
 
 	/*********************************************************
 	 * =Miscellaneous
